@@ -1,0 +1,259 @@
+# Data Loading & Preprocessing (MODIFIED - Fully Numerical Output)
+# Cell 1: Imports & Configuration
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+
+# Load your dataset
+# df = pd.read_csv('NF-ToN-IoT-v2-5%.csv')
+# df = pd.read_csv('IoTID20_XAI2.csv')
+# df = pd.read_csv('CIC-BoT-IoT-5%.csv')
+df = pd.read_csv('NF-BoT-IoT-v2-5%.csv')
+
+print("=" * 60)
+print("STAGE 1: DATA PREPROCESSING (FULLY NUMERICAL OUTPUT)")
+print("=" * 60)
+
+# Check if 'Attack' column exists
+if 'Attack' not in df.columns:
+    print("Error: 'Attack' column not found. Available columns:", df.columns.tolist())
+else:
+    # ============================================================================
+    # STEP 1: Initial Data Cleaning
+    # ============================================================================
+    print("\n[Step 1] Initial data cleaning...")
+
+    # Fill missing values in numeric columns
+    numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
+    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].mean())
+
+    # Fill missing values in non-numeric columns with mode or 'unknown'
+    non_numeric_cols = df.select_dtypes(exclude=['float64', 'int64']).columns
+    for col in non_numeric_cols:
+        if col != 'Attack':  # Don't fill Attack column yet
+            # Use mode for categorical columns
+            mode_val = df[col].mode()
+            if len(mode_val) > 0:
+                df[col] = df[col].fillna(mode_val[0])
+            else:
+                df[col] = df[col].fillna('unknown')
+
+    # Remove duplicates
+    df.drop_duplicates(inplace=True)
+    print(f"  Dataset shape after cleansing: {df.shape}")
+
+    # ============================================================================
+    # STEP 2: Handle Non-Numeric Columns (IP addresses, protocols, etc.)
+    # ============================================================================
+    print("\n[Step 2] Encoding categorical/non-numeric columns...")
+
+    # Identify non-numeric columns (excluding the target 'Attack' column)
+    non_numeric_cols = df.select_dtypes(exclude=['float64', 'int64']).columns.tolist()
+    if 'Attack' in non_numeric_cols:
+        non_numeric_cols.remove('Attack')
+
+    print(f"  Non-numeric columns found: {non_numeric_cols}")
+
+    # Create a copy of the dataframe for encoding
+    df_encoded = df.copy()
+
+    # Encode each non-numeric column
+    encoders = {}
+    for col in non_numeric_cols:
+        print(f"  Encoding column: '{col}'")
+
+        # Check if column contains IP addresses
+        sample_val = df[col].dropna().iloc[0] if len(df[col].dropna()) > 0 else ''
+        if isinstance(sample_val, str) and '.' in sample_val and sample_val.replace('.', '').isdigit():
+            print(f"    → Detected IP addresses in '{col}', converting to integers...")
+            # Convert IP to integer
+            def ip_to_int(ip):
+                try:
+                    parts = str(ip).split('.')
+                    if len(parts) == 4:
+                        return (int(parts[0]) << 24) + (int(parts[1]) << 16) + (int(parts[2]) << 8) + int(parts[3])
+                    else:
+                        return 0
+                except:
+                    return 0
+
+            df_encoded[col] = df[col].apply(ip_to_int)
+        else:
+            # Use LabelEncoder for regular categorical data
+            le = LabelEncoder()
+            # Convert to string and fill NaN
+            col_clean = df[col].astype(str).fillna('unknown')
+            df_encoded[col] = le.fit_transform(col_clean)
+            encoders[col] = le
+            print(f"    → Encoded {len(le.classes_)} unique categories")
+
+    # ============================================================================
+    # STEP 3: Handle Port Numbers (ensure they're numeric)
+    # ============================================================================
+    print("\n[Step 3] Ensuring port numbers are numeric...")
+
+    # Common port column names
+    port_columns = ['port', 'sport', 'dport', 'src_port', 'dst_port', 'source_port', 'destination_port']
+
+    for col in port_columns:
+        if col in df_encoded.columns:
+            print(f"  Converting '{col}' to numeric...")
+            df_encoded[col] = pd.to_numeric(df_encoded[col], errors='coerce').fillna(0).astype(int)
+
+    # ============================================================================
+    # STEP 4: Handle Protocol Types
+    # ============================================================================
+    print("\n[Step 4] Encoding protocol types...")
+
+    # Common protocol column names
+    protocol_columns = ['proto', 'protocol', 'Protocol', 'PROTO']
+
+    for col in protocol_columns:
+        if col in df_encoded.columns:
+            print(f"  Encoding '{col}'...")
+            # Protocol mapping (common protocols)
+            protocol_map = {
+                'tcp': 6, 'TCP': 6, '6': 6,
+                'udp': 17, 'UDP': 17, '17': 17,
+                'icmp': 1, 'ICMP': 1, '1': 1,
+                'igmp': 2, 'IGMP': 2, '2': 2,
+                'ipv4': 4, 'IPv4': 4,
+                'ipv6': 41, 'IPv6': 41
+            }
+
+            # Try to map protocols to numbers
+            def map_protocol(val):
+                try:
+                    val_str = str(val).lower()
+                    if val_str in protocol_map:
+                        return protocol_map[val_str]
+                    else:
+                        # Try to convert to int directly
+                        return int(val)
+                except:
+                    return 0  # Default for unknown protocols
+
+            df_encoded[col] = df_encoded[col].apply(map_protocol)
+            print(f"    → Mapped to protocol numbers")
+
+    # ============================================================================
+    # STEP 5: Handle Flags and Other Categorical Data
+    # ============================================================================
+    print("\n[Step 5] Encoding remaining categorical data...")
+
+    # Identify any remaining object/string columns (excluding target)
+    remaining_object_cols = df_encoded.select_dtypes(include=['object']).columns.tolist()
+    if 'Attack' in remaining_object_cols:
+        remaining_object_cols.remove('Attack')
+
+    for col in remaining_object_cols:
+        print(f"  Encoding remaining categorical column: '{col}'")
+        le = LabelEncoder()
+        df_encoded[col] = le.fit_transform(df_encoded[col].astype(str))
+        encoders[col] = le
+
+    # ============================================================================
+    # STEP 6: Verify all features are now numeric
+    # ============================================================================
+    print("\n[Step 6] Verifying numeric conversion...")
+
+    # Separate features and target
+    X = df_encoded.drop('Attack', axis=1)
+    y = df_encoded['Attack']
+
+    # Check if any non-numeric columns remain in X
+    non_numeric_in_X = X.select_dtypes(exclude=['float64', 'int64']).columns.tolist()
+    if non_numeric_in_X:
+        print(f"  WARNING: Still have non-numeric columns: {non_numeric_in_X}")
+        # Force convert any remaining object columns
+        for col in non_numeric_in_X:
+            print(f"    Forcing conversion of '{col}'")
+            X[col] = pd.to_numeric(X[col], errors='coerce').fillna(0)
+    else:
+        print("  ✓ All features are now numeric!")
+
+    # ============================================================================
+    # STEP 7: Normalize numeric features
+    # ============================================================================
+    print("\n[Step 7] Normalizing numeric features with MinMaxScaler...")
+
+    # Get all numeric columns (should be all columns now)
+    numeric_features = X.select_dtypes(include=['float64', 'int64']).columns
+
+    # Check for NaN or Inf values
+    if X[numeric_features].isnull().any().any():
+        print("  Handling remaining NaN values...")
+        X[numeric_features] = X[numeric_features].fillna(X[numeric_features].mean())
+
+    if (X[numeric_features] == np.inf).any().any() or (X[numeric_features] == -np.inf).any().any():
+        print("  Handling Inf values...")
+        X[numeric_features] = X[numeric_features].replace([np.inf, -np.inf], 0)
+
+    # Initialize and apply MinMaxScaler
+    scaler = MinMaxScaler()
+    X_scaled = X.copy()
+    X_scaled[numeric_features] = scaler.fit_transform(X[numeric_features])
+
+    print(f"  Normalized {len(numeric_features)} features to range [0, 1]")
+
+    # ============================================================================
+    # STEP 8: Encode target labels
+    # ============================================================================
+    print("\n[Step 8] Encoding target labels...")
+
+    label_encoder = LabelEncoder()
+    y_encoded = label_encoder.fit_transform(y)
+
+    print(f"  Classes found: {list(label_encoder.classes_)}")
+    print(f"  Class distribution:")
+    for i, cls in enumerate(label_encoder.classes_):
+        count = sum(y_encoded == i)
+        print(f"    {cls}: {count} ({count/len(y_encoded)*100:.2f}%)")
+
+    # ============================================================================
+    # STEP 9: Train-Test Split
+    # ============================================================================
+    print("\n[Step 9] Splitting data into train/test sets...")
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded
+    )
+
+    print(f"  Training set shape: {X_train.shape}")
+    print(f"  Testing set shape: {X_test.shape}")
+    print(f"  Training target distribution:")
+    for i, cls in enumerate(label_encoder.classes_):
+        count = sum(y_train == i)
+        print(f"    {cls}: {count} ({count/len(y_train)*100:.2f}%)")
+
+    # ============================================================================
+    # STEP 10: Final Verification
+    # ============================================================================
+    print("\n[Step 10] Final verification...")
+    print(f"  X_train type: {type(X_train)}")
+    print(f"  X_train dtype: {X_train.dtypes.iloc[0] if hasattr(X_train, 'dtypes') else X_train.dtype}")
+    print(f"  X_train shape: {X_train.shape}")
+    print(f"  y_train type: {type(y_train)}")
+    print(f"  y_train shape: {y_train.shape}")
+
+    # Verify no string/object types remain
+    if hasattr(X_train, 'select_dtypes'):
+        obj_cols = X_train.select_dtypes(include=['object']).columns.tolist()
+        if obj_cols:
+            print(f"  ERROR: Still have object columns: {obj_cols}")
+        else:
+            print("  ✓ SUCCESS: X_train contains only numeric data!")
+    else:
+        print("  ✓ X_train is a numeric numpy array/DataFrame")
+
+    print("\n" + "=" * 60)
+    print("STAGE 1 COMPLETE - Ready for Stage 2 (WGAN-GP)")
+    print("=" * 60)
+
+    # Display sample of preprocessed data
+    print("\nSample of preprocessed training data (first 5 rows, first 5 columns):")
+    if hasattr(X_train, 'iloc'):
+        print(X_train.iloc[:5, :5])
+    else:
+        print(X_train[:5, :5])
