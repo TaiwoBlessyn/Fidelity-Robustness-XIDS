@@ -1,6 +1,6 @@
 # 🔐 An Explainable Hybrid Transformer-LSTM Intrusion Detection for IoT Network: A Fidelity-Aware Evaluation of GAN Augmentation and Adversarial Robustness
 
-This project presents a hybrid DL-based intrusion detection architecture for IoT networks using Transformer and Long Short-Term Memory (LSTM) neural network. The WGAN-GP was deployed for data augmentation and three adversarial attacks (FGSM, PGD, & C&W) for model robustness. It also utilizes **SHAP** (SHapley Additive exPlanations) to provide explanation for individual predictions and evaluate model's stability and faithfulness under different adversarial conditions.
+This project presents a hybrid DL-based intrusion detection architecture for IoT networks using Transformer and Long Short-Term Memory (LSTM) neural networks. The WGAN-GP was deployed for data augmentation and three adversarial attacks (FGSM, PGD, & C&W) for model robustness. It also utilizes **SHAP** (SHapley Additive exPlanations) to provide explanation for individual predictions and evaluate model's stability and faithfulness under different adversarial conditions.
 
 ---
 
