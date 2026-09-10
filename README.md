@@ -1,13 +1,14 @@
 # 🔐 An Explainable Hybrid Transformer-LSTM Intrusion Detection for IoT Network: A Fidelity-Aware Evaluation of GAN Augmentation and Adversarial Robustness
 
-This project presents a hybrid DL-based intrusion detection architecture for IoT networks using Transformer and Long Short-Term Memory (LSTM) neural network. The WGAN-GP was deployed for data augmentation and three adversarial attacks (FGSM, PDG, & C&W) for model robustness. It also utilizes **SHAP** (SHapley Additive exPlanations) to provide explanation for individual predictions and evaluate model's stability and faithfulness under different adversarial conditions.
+This project presents a hybrid DL-based intrusion detection architecture for IoT networks using Transformer and Long Short-Term Memory (LSTM) neural network. The WGAN-GP was deployed for data augmentation and three adversarial attacks (FGSM, PGD, & C&W) for model robustness. It also utilizes **SHAP** (SHapley Additive exPlanations) to provide explanation for individual predictions and evaluate model's stability and faithfulness under different adversarial conditions.
 
 ---
 
 ## 📘 Overview
 
-- **Objective**: Detect anomalous traffic in IoT environments using an LSTM model optimized by a nature-inspired algorithm.
-- **Optimization**: Firefly Algorithm is used to tune hyperparameters and improve detection accuracy.
+- **Objective**: Detect anomalous traffic in IoT environments using a hybrid Transformer-LSTM framework benchmarked against a standalone LSTM.
+- **Optimization**: The WGAN-GP algorithm was used to augment data and improve class imbalance.
+- **Robustness**: Three adversarial attacks (FGSM, PGD, C&W) were used to test model robustness.
 - **Explainability**: SHAP is used to interpret model decisions on a per-instance basis.
 
 ---
@@ -22,9 +23,9 @@ This project presents a hybrid DL-based intrusion detection architecture for IoT
 
 Click the badge below to open and run the full notebook in Google Colab:
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1u1C4eyoc9xN37WcGempaUwkAdDdgkMeh?usp=sharing)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1fu4RqnIMkGZKQpFTNEPww51II3UhRJQf#scrollTo=Pp7fMWQwICvn)
 
-> ⚠️ **Note**: GitHub’s notebook preview may not render dynamic elements like LIME’s HTML output.  
+> ⚠️ **Note**: GitHub’s notebook preview may not render dynamic elements like SHAP’s HTML output.  
 > Please use the Colab link above to view the notebook with full code execution and interactive visualizations.
 
 ---
@@ -32,9 +33,9 @@ Click the badge below to open and run the full notebook in Google Colab:
 ## 🛠️ Technologies Used
 
 - Python 3.x  
-- TensorFlow / Keras  
+- TensorFlow / Keras
+- FGSM, PGD, & C&W (custom implementation)   
 - SHAP  
-- FGSM, PGD, & C&W (custom implementation)  
 - Google Colab
 
 ---
@@ -49,5 +50,5 @@ Click the badge below to open and run the full notebook in Google Colab:
 
 ## 📄 License
 
-This project is for academic and research purposes. Feel free to fork, cite, or contribute!
+This project is for academic and research purposes only. 
 
