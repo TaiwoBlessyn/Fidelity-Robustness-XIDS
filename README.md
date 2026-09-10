@@ -43,7 +43,9 @@ Click the badge below to open and run the full notebook in Google Colab:
 ## 🧠 Authors
 
 - Taiwo Blessing Ogunseyi
-- Gogulakrishnan Thiyagarajan  
+- Gogulakrishnan Thiyagarajan
+- Vinay Bist
+- Du Zhengcong
 
 
 ---
