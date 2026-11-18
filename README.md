@@ -1,15 +1,15 @@
-# 🔐 An Explainable Hybrid Transformer-LSTM Intrusion Detection for IoT Network: A Fidelity-Aware Evaluation of GAN Augmentation and Adversarial Robustness
+# 🔐 Fidelity-Gated Augmentation and Robustness-Aware Filtering for Explainable Hybrid Transformer-LSTM Intrusion Detection in IoT Networks
 
-This project presents a hybrid DL-based intrusion detection architecture for IoT networks using Transformer and Long Short-Term Memory (LSTM) neural networks. The WGAN-GP was deployed for data augmentation and three adversarial attacks (FGSM, PGD, C&W) for model robustness. It also utilizes **SHAP** (SHapley Additive exPlanations) to provide explanation for individual predictions and evaluate model's stability and faithfulness under different adversarial conditions.
+This project presents a secure hybrid Transformer-LSTM intrusion detection framework evaluated alongside a standalone LSTM. It introduce a fidelity-gated adaptive augmentation framework that computes a per-class fidelity score. To secure edge-deployed models, it integrate a robustness-aware synthetic filter that evaluates adversarial stability prior to training, and employ **SHAP** (SHapley Additive exPlanations) to measure explanation stability and faithfulness under attack conditions. 
 
 ---
 
 ## 📘 Overview
 
-- **Objective**: Detect anomalous traffic in IoT environments using a hybrid Transformer-LSTM framework benchmarked against a standalone LSTM.
-- **Optimization**: The WGAN-GP algorithm was used to augment data and improve class imbalance.
-- **Robustness**: Three adversarial attacks (FGSM, PGD, C&W) were used to test model robustness.
-- **Explainability**: SHAP was used to interpret model decisions on a per-instance basis.
+- **Objective**: Verify synthetic data fidelity before augmentation and examine how synthetic artifacts can degrade the adversarial robustness of lightweight hybrid models.
+- **Optimization**: A fidelity-gated adaptive augmentation framework and a robustness-aware synthetic filter
+- **Robustness**: Two adversarial attacks (FGSM & PGD) were used to test model robustness.
+- **Explainability**: SHAP was used to interpret model decisions and measure explanation stability and faithfulness.
 
 ---
 
@@ -34,7 +34,7 @@ Click the badge below to open and run the full notebook in Google Colab:
 
 - Python 3.x  
 - TensorFlow / Keras
-- FGSM, PGD, & C&W (custom implementation)   
+- FGSM & PGD
 - SHAP  
 - Google Colab
 
